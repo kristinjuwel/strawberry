@@ -42,7 +42,7 @@ export default function Home() {
 
   const { date, time } = formatDateTime(currentDateTime);
   return (
-    <Card className="w-screen h-full min-h-screen max-w-screen max-h-screen overflow-hidden rounded-none border-none shadow-lg p-0 gap-0 bg-rose-50">
+    <Card className="w-screen h-full min-h-screen max-w-screen max-h-screen overflow-auto rounded-none border-none shadow-lg p-0 gap-0 bg-rose-50">
       <CardHeader className="bg-rose-200 p-6 md:p-10 text-white flex h-full flex-row items-center justify-center">
         <h4 className="lg:text-7xl md:text-6xl text-5xl text-center font-extrabold text-rose-800">
           STRAWBERRY ENVIRONMENT
@@ -107,9 +107,8 @@ export default function Home() {
             </div>
             <div className="flex flex-col md:gap-16">
               <span className="flex md:flex-row flex-col text-lg md:text-2xl lg:text-3xl p-2 w-full text-rose-600 md:tracking-wide justify-start items-center">
-                <p className="hidden md:flex">Last Updated at {date}</p>
-                <p className="hidden md:flex right-40 absolute text-end">
-                  &nbsp;- {time}
+                <p className="hidden md:flex">
+                  Last Updated at {date}&nbsp;- {time}
                 </p>
                 <p className="flex md:hidden">Last Updated at:</p>
                 <p className="flex md:hidden md:right-20 text-end">

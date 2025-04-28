@@ -70,7 +70,7 @@ export default async function HistoryPage() {
   const data = await getData();
 
   return (
-    <Card className="w-screen h-full min-h-screen max-w-screen max-h-screen overflow-hidden rounded-none border-none shadow-lg p-0 gap-0 bg-rose-50">
+    <Card className="w-screen h-full min-h-screen max-w-screen max-h-screen overflow-auto rounded-none border-none shadow-lg p-0 gap-0 bg-rose-50">
       <CardHeader className="bg-rose-200 p-4 md:p-8 text-white flex h-full flex-row items-center justify-center">
         <Image
           className="mx-0 md:size-20 size-10"
