@@ -8,15 +8,31 @@ import { useEffect, useState } from "react";
 
 export default function Home() {
   const router = useRouter();
-  const [currentDateTime, setCurrentDateTime] = useState<Date | null>(null);
+  const [temperature, setTemperature] = useState<string | null>(null);
+  const [humidity, setHumidity] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setCurrentDateTime(new Date());
-      const timer = setInterval(() => {
-        setCurrentDateTime(new Date());
-      }, 1000);
-      return () => clearInterval(timer);
+      const fetchThingSpeakData = async () => {
+        try {
+          const res = await fetch(
+            "https://api.thingspeak.com/channels/2950820/feeds.json?api_key=KRYD2ECPMRNY1HM7&results=1"
+          );
+          const data = await res.json();
+          const latest = data.feeds[0];
+
+          setTemperature(latest.field1);
+          setHumidity(latest.field2);
+          setLastUpdate(new Date(latest.created_at));
+        } catch (error) {
+          console.error("Error fetching ThingSpeak data:", error);
+        }
+      };
+
+      fetchThingSpeakData();
+      const interval = setInterval(fetchThingSpeakData, 30000); // Refresh every 30s
+      return () => clearInterval(interval);
     }
   }, []);
 
@@ -40,7 +56,8 @@ export default function Home() {
     };
   };
 
-  const { date, time } = formatDateTime(currentDateTime);
+  const { date, time } = formatDateTime(lastUpdate);
+
   return (
     <Card className="w-screen h-full min-h-screen max-w-screen max-h-screen overflow-auto rounded-none border-none shadow-lg p-0 gap-0 bg-rose-50">
       <CardHeader className="bg-rose-200 p-6 md:p-10 text-white flex h-full flex-row items-center justify-center">
@@ -56,7 +73,7 @@ export default function Home() {
           backgroundPosition: "center",
         }}
       >
-        <div className="md:flex md:flex-row justify-center ">
+        <div className="md:flex md:flex-row justify-center">
           <Image
             className="mx-0 mb-4 md:size-2/5 md:-ml-10 md:z-10 hidden md:flex"
             src="/center.png"
@@ -70,7 +87,7 @@ export default function Home() {
                 <CardHeader className="bg-amber-100 h-14 md:h-18 p-4 text-white items-center justify-center">
                   <div className="flex items-center justify-between">
                     <Thermometer
-                      className="text-rose-700 font-bold text"
+                      className="text-rose-700 font-bold"
                       strokeWidth={2.5}
                       size={35}
                     />
@@ -81,7 +98,9 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                   <p className="md:text-8xl text-7xl text-center tracking-tighter text-rose-700">
-                    28.9&nbsp;&deg;C
+                    {temperature
+                      ? `${parseFloat(temperature).toFixed(2)}°C`
+                      : "Loading..."}
                   </p>
                 </CardContent>
               </Card>
@@ -89,7 +108,7 @@ export default function Home() {
                 <CardHeader className="bg-amber-100 h-14 md:h-18 p-4 text-white items-center justify-center">
                   <div className="flex items-center justify-between">
                     <Droplet
-                      className="text-rose-700 font-bold text fill-rose-700"
+                      className="text-rose-700 font-bold fill-rose-700"
                       strokeWidth={2.5}
                       size={35}
                     />
@@ -100,7 +119,9 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                   <p className="md:text-8xl text-7xl text-center tracking-tighter text-rose-700">
-                    60%
+                    {humidity
+                      ? `${parseFloat(humidity).toFixed(2)}%`
+                      : "Loading..."}
                   </p>
                 </CardContent>
               </Card>

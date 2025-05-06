@@ -1,8 +1,11 @@
+"use client";
+
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Environment, columns } from "./columns";
 import { DataTable } from "./data-table";
 import Image from "next/image";
 import { SeeCurrentReadingButton } from "./button";
+import { useEffect, useState } from "react";
 
 function formatTimestamp(isoString: string): string {
   const date = new Date(isoString);
@@ -19,55 +22,56 @@ function formatTimestamp(isoString: string): string {
     .replace(",", " -");
 }
 
-async function getData(): Promise<Environment[]> {
-  return [
-    {
-      id: "1",
-      timestamp: formatTimestamp("2024-03-15T09:15:00Z"),
-      temperature: "22°C",
-      humidity: "65%",
-    },
-    {
-      id: "2",
-      timestamp: formatTimestamp("2024-03-15T12:30:00Z"),
-      temperature: "24°C",
-      humidity: "62%",
-    },
-    {
-      id: "3",
-      timestamp: formatTimestamp("2024-03-15T15:45:00Z"),
-      temperature: "26°C",
-      humidity: "58%",
-    },
-    {
-      id: "4",
-      timestamp: formatTimestamp("2024-03-15T18:00:00Z"),
-      temperature: "20°C",
-      humidity: "70%",
-    },
-    {
-      id: "5",
-      timestamp: formatTimestamp("2024-03-15T21:20:00Z"),
-      temperature: "18°C",
-      humidity: "75%",
-    },
-    {
-      id: "6",
-      timestamp: formatTimestamp("2024-03-16T06:00:00Z"),
-      temperature: "19°C",
-      humidity: "72%",
-    },
-    {
-      id: "7",
-      timestamp: formatTimestamp("2024-03-16T12:45:00Z"),
-      temperature: "25°C",
-      humidity: "60%",
-    },
-  ];
-}
+export default function HistoryPage() {
+  const [data, setData] = useState<Environment[]>([]);
 
-export default async function HistoryPage() {
-  const data = await getData();
+  // Define Feed type at the top-level so it's accessible in both useEffect and handleDownload
+  type Feed = {
+    created_at: string;
+    field1?: string;
+    field2?: string;
+  };
+
+  useEffect(() => {
+    async function fetchData() {
+      const res = await fetch(
+        "https://api.thingspeak.com/channels/2950820/feeds.json?api_key=KRYD2ECPMRNY1HM7&results=1000"
+      );
+      if (!res.ok) {
+        console.error("Failed to fetch data");
+        return;
+      }
+
+      const json = await res.json();
+      const feeds = json.feeds;
+
+      const filtered: Environment[] = [];
+      let prevTemp: string | null = null;
+      let prevHum: string | null = null;
+
+      feeds.forEach((feed: Feed) => {
+        const temp = feed.field1 ? parseFloat(feed.field1).toFixed(2) : null;
+        const hum = feed.field2 ? parseFloat(feed.field2).toFixed(2) : null;
+
+        if (temp !== null && hum !== null) {
+          if (temp !== prevTemp || hum !== prevHum) {
+            filtered.push({
+              id: (filtered.length + 1).toString(),
+              timestamp: formatTimestamp(feed.created_at),
+              temperature: `${temp}°C`,
+              humidity: `${hum}%`,
+            });
+            prevTemp = temp;
+            prevHum = hum;
+          }
+        }
+      });
+
+      setData(filtered);
+    }
+
+    fetchData();
+  }, []);
 
   return (
     <Card className="w-screen h-full min-h-screen max-w-screen max-h-screen overflow-auto rounded-none border-none shadow-lg p-0 gap-0 bg-rose-50">
@@ -97,7 +101,7 @@ export default async function HistoryPage() {
         <div className="container mx-auto py-4 md:px-18">
           <DataTable columns={columns} data={data} />
         </div>
-        <div className="flex justify-end">
+        <div className="flex flex-col md:flex-row justify-between items-center px-4 mt-4">
           <SeeCurrentReadingButton />
         </div>
       </CardContent>
