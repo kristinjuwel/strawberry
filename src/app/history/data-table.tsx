@@ -116,7 +116,7 @@ export function DataTable<TData, TValue>({
   };
   return (
     <div className="rounded-lg">
-      <div className="py-4 text-2xl border-none flex justify-between">
+      <div className="py-4 text-2xl border-none md:flex-row flex flex-col md:justify-between">
         <Input
           placeholder="Search..."
           value={globalFilter}
