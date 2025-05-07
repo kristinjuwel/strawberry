@@ -8,7 +8,7 @@ import {
   SortingState,
   getPaginationRowModel,
 } from "@tanstack/react-table";
-import { Input } from "@/components/ui/input"; // Assuming an Input component exists
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import {
   Table,
@@ -20,20 +20,26 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 
+interface FeedRow {
+  timestamp: string; // ISO timestamp string
+  temperature: string;
+  humidity: string;
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends object, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([
-    { id: "timestamp", desc: true }, // Initial sorting by timestamp (latest to oldest)
+    { id: "timestamp", desc: true },
   ]);
-  const [pageIndex, setPageIndex] = useState(0); // Pagination state
+  const [pageIndex, setPageIndex] = useState(0);
 
   const table = useReactTable({
     data,
@@ -41,17 +47,14 @@ export function DataTable<TData, TValue>({
     state: {
       globalFilter,
       sorting,
-      pagination: { pageIndex, pageSize: 5 }, // Add pagination state
+      pagination: { pageIndex, pageSize: 5 },
     },
     onGlobalFilterChange: setGlobalFilter,
     onSortingChange: setSorting,
     onPaginationChange: (updater) => {
       const newPageIndex =
         typeof updater === "function"
-          ? updater({
-              pageIndex,
-              pageSize: 0,
-            }).pageIndex
+          ? updater({ pageIndex, pageSize: 0 }).pageIndex
           : updater.pageIndex;
       setPageIndex(newPageIndex);
     },
@@ -61,6 +64,7 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     pageCount: Math.ceil(data.length / 5),
   });
+
   const handleDownload = async () => {
     const res = await fetch(
       "https://api.thingspeak.com/channels/2950820/feeds.json?api_key=KRYD2ECPMRNY1HM7&results=8000"
@@ -99,7 +103,7 @@ export function DataTable<TData, TValue>({
         }
         return null;
       })
-      .filter((row: null) => row !== null); // Remove nulls
+      .filter((row: string | null): row is string => row !== null);
 
     const csvHeader = "Timestamp,Temperature (°C),Humidity (%)\n";
     const csvContent = csvHeader + filteredRows.join("\n");
@@ -114,6 +118,7 @@ export function DataTable<TData, TValue>({
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
+
   return (
     <div className="rounded-lg">
       <div className="py-4 text-2xl border-none md:flex-row flex flex-col md:justify-between">
@@ -134,18 +139,16 @@ export function DataTable<TData, TValue>({
         <TableHeader className="bg-rose-200 p-2">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} className="border-none">
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                );
-              })}
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                </TableHead>
+              ))}
             </TableRow>
           ))}
         </TableHeader>
@@ -159,7 +162,10 @@ export function DataTable<TData, TValue>({
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    {flexRender(
+                      cell.column.columnDef.cell,
+                      cell.getContext()
+                    )}
                   </TableCell>
                 ))}
               </TableRow>
