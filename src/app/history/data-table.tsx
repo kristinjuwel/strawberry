@@ -20,12 +20,6 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 
-interface FeedRow {
-  timestamp: string; // ISO timestamp string
-  temperature: string;
-  humidity: string;
-}
-
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
