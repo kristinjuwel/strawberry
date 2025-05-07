@@ -29,7 +29,10 @@ export const columns: ColumnDef<Environment>[] = [
         </div>
       );
     },
-    enableSorting: true, // Enable sorting
+    enableSorting: true,
+    sortingFn: (a, b, columnId) =>
+      new Date(a.getValue<string>(columnId)).getTime() -
+      new Date(b.getValue<string>(columnId)).getTime(),
     filterFn: "includesString",
     meta: {
       filterVariant: "datetime",
@@ -51,7 +54,7 @@ export const columns: ColumnDef<Environment>[] = [
         </div>
       );
     },
-    enableSorting: true, // Enable sorting
+    enableSorting: true,
     filterFn: "includesString",
     meta: {
       filterVariant: "text",
@@ -73,7 +76,7 @@ export const columns: ColumnDef<Environment>[] = [
         </div>
       );
     },
-    enableSorting: true, // Enable sorting
+    enableSorting: true,
     filterFn: "includesString",
     meta: {
       filterVariant: "text",
